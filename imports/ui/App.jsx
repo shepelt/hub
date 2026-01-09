@@ -46,6 +46,7 @@ export const App = () => {
         >
           <Route path="/" element={<Home />} />
           <Route path="/playground" element={<Playground />} />
+          <Route path="/playground/:chatId" element={<Playground />} />
           <Route path="/router" element={<Router />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
