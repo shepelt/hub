@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "start": "dotenv -- meteor run --port 4000 --settings settings-local.json",
-    "test": "meteor test --once --driver-package meteortesting:mocha",
-    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+    "test": "dotenv -- meteor test --once --driver-package meteortesting:mocha --settings settings-local.json --port 4100",
+    "test:watch": "dotenv -- meteor test --driver-package meteortesting:mocha --settings settings-local.json --port 4100",
     "visualize": "meteor --production --extra-packages bundle-visualizer"
   },
   "dependencies": {

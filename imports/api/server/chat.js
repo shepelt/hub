@@ -1,9 +1,21 @@
 import { Meteor } from 'meteor/meteor';
 import fs from 'fs/promises';
 import sigrid, { createWorkspace, openWorkspace } from 'sigrid';
-import { Playgrounds } from '../collections.js';
+import { Playgrounds, ApiKeys } from '../collections.js';
 import { MeteorPersistence } from './MeteorPersistence.js';
 import { getPrompt } from '../prompts.js';
+
+/**
+ * Get user's Playground API key
+ */
+async function getUserApiKey(userId) {
+  const user = await Meteor.users.findOneAsync({ _id: userId });
+  if (user?.playgroundApiKey) {
+    return user.playgroundApiKey;
+  }
+  // Fallback to shared gateway key
+  return Meteor.settings.private?.llmGateway?.apiKey;
+}
 
 /**
  * Get or create workspace for a playground
@@ -141,6 +153,16 @@ Meteor.methods({
       if (!playground.workspacePath) {
         await Playgrounds.updateAsync(playgroundId, {
           $set: { workspacePath: workspace.path }
+        });
+      }
+
+      // Reinitialize sigrid with user's personal API key for quota tracking
+      const userApiKey = await getUserApiKey(this.userId);
+      const gatewayConfig = Meteor.settings.private?.llmGateway;
+      if (userApiKey && gatewayConfig?.url) {
+        sigrid.initializeClient({
+          apiKey: userApiKey,
+          baseURL: gatewayConfig.url
         });
       }
 

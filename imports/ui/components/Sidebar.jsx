@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { Home, FlaskConical, Network, Settings, LogOut } from 'lucide-react';
+import { Home, FlaskConical, Network, Settings, LogOut, Shield } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/playground', label: 'Playground', icon: FlaskConical },
-  { path: '/router', label: 'Router', icon: Network },
+  { path: '/api', label: 'API', icon: Network },
 ];
 
 const accountItems = [
@@ -16,10 +16,18 @@ const accountItems = [
 
 export const Sidebar = () => {
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const user = useTracker(() => {
     Meteor.subscribe('userData');
     return Meteor.user();
   });
+
+  useEffect(() => {
+    if (user) {
+      Meteor.callAsync('admin.isAdmin').then(setIsAdmin).catch(() => setIsAdmin(false));
+    }
+  }, [user?._id]);
 
   const handleLogout = () => {
     Meteor.logout((error) => {
@@ -79,6 +87,9 @@ export const Sidebar = () => {
           {accountItems.map((item) => (
             <NavLink key={item.path} item={item} />
           ))}
+          {isAdmin && (
+            <NavLink item={{ path: '/admin', label: 'Admin', icon: Shield }} />
+          )}
         </div>
       </nav>
 

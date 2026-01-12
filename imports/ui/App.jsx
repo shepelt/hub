@@ -5,9 +5,10 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { MainLayout } from './layouts/MainLayout.jsx';
 import { Home } from './pages/Home.jsx';
 import { Playground } from './pages/Playground.jsx';
-import { Router } from './pages/Router.jsx';
 import { Settings } from './pages/Settings.jsx';
 import { Login } from './pages/Login.jsx';
+import { Api } from './pages/Api.jsx';
+import { Admin } from './pages/Admin.jsx';
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -47,7 +48,8 @@ export const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/playground" element={<Playground />} />
           <Route path="/playground/:chatId" element={<Playground />} />
-          <Route path="/router" element={<Router />} />
+          <Route path="/api" element={<Api />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
