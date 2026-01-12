@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { Menu, Send, Loader2, User, Bot, Plus, Trash2, MessageSquare, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { Menu, Send, Loader2, User, Bot, Plus, Trash2, MessageSquare, ChevronDown, MoreHorizontal, Copy, Check, Info } from 'lucide-react';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import 'katex/dist/katex.min.css';
@@ -30,6 +30,7 @@ export const Playground = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [renameId, setRenameId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -182,6 +183,16 @@ export const Playground = () => {
     }
   };
 
+  const copyToClipboard = async (text, index) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
   return (
     <div className="playground-layout">
       {/* Playground Sidebar */}
@@ -308,6 +319,34 @@ export const Playground = () => {
                       msg.content
                     )}
                     {msg.isStreaming && <span className="streaming-cursor" />}
+                    {msg.role === 'assistant' && !msg.isStreaming && msg.content && (
+                      <div className="message-footer">
+                        <div className="message-info-wrapper">
+                          <button className="message-action-btn" title="Usage stats">
+                            <Info size={16} />
+                          </button>
+                          <div className="message-stats-tooltip">
+                            {msg.model && <>{getModels().find(m => m.id === msg.model)?.name || msg.model}</>}
+                            {msg.inputTokens > 0 && (
+                              <>
+                                {msg.model && ' · '}
+                                {msg.inputTokens} in · {msg.outputTokens} out
+                                {msg.latencyMs > 0 && (
+                                  <> · {(msg.latencyMs / 1000).toFixed(1)}s · {Math.round(msg.outputTokens / (msg.latencyMs / 1000))} tok/s</>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          className="message-action-btn"
+                          onClick={() => copyToClipboard(msg.content, index)}
+                          title="Copy to clipboard"
+                        >
+                          {copiedIndex === index ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

@@ -950,6 +950,76 @@ body {
   color: #5f6368;
 }
 
+/* Message footer with action buttons */
+.message-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.message-model-name {
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.message-info-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.message-stats-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #202124;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.message-stats-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #202124;
+}
+
+.message-info-wrapper:hover .message-stats-tooltip {
+  display: block;
+}
+
+.message-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #5f6368;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.message-action-btn:hover {
+  color: #202124;
+}
+
+.message-action-btn svg {
+  flex-shrink: 0;
+}
+
 .playground-input {
   display: flex;
   align-items: flex-end;

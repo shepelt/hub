@@ -145,6 +145,7 @@ Meteor.methods({
       let fullContent = '';
       let lastUpdate = 0;
       const UPDATE_INTERVAL = 100; // Update DB every 100ms
+      const startTime = Date.now(); // Track latency
 
       // Get or create workspace for this playground
       const workspace = await getWorkspace(playground.workspacePath);
@@ -193,15 +194,26 @@ Meteor.methods({
 
       // Use fullContent if available, otherwise fall back to result.content
       const finalContent = fullContent || result.content || '';
-      console.log(`Streaming complete: fullContent=${fullContent.length} chars, result.content=${result.content?.length || 0} chars`);
+      const latencyMs = Date.now() - startTime;
 
-      // Finalize: mark streaming complete
+      // Extract usage metrics
+      const tokenCount = result.tokenCount || {};
+      const inputTokens = tokenCount.promptTokens || 0;
+      const outputTokens = tokenCount.completionTokens || 0;
+
+      console.log(`Streaming complete: ${inputTokens} in, ${outputTokens} out, ${latencyMs}ms`);
+
+      // Finalize: mark streaming complete and store model info + usage
       await Playgrounds.updateAsync(
         { _id: playgroundId },
         {
           $set: {
             [`messages.${messageIndex}.isStreaming`]: false,
             [`messages.${messageIndex}.content`]: finalContent,
+            [`messages.${messageIndex}.model`]: model,
+            [`messages.${messageIndex}.inputTokens`]: inputTokens,
+            [`messages.${messageIndex}.outputTokens`]: outputTokens,
+            [`messages.${messageIndex}.latencyMs`]: latencyMs,
             status: 'idle',
             updatedAt: new Date()
           }
