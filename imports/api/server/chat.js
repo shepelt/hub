@@ -175,7 +175,7 @@ Meteor.methods({
         conversationPersistence: persistence,
         conversationID: playgroundId,
         instruction: getPrompt('default'),
-        includeWorkspace: false,
+        includeWorkspace: { aiRules: false, fileStructure: false, files: false },
         stream: true,
         streamCallback: (chunk) => {
           fullContent += chunk;
