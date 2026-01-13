@@ -43,7 +43,8 @@ Accounts.onCreateUser(async (options, user) => {
     const result = await RouterClient.createConsumer(
       userId,
       APP_ID,
-      credit
+      credit,
+      'hub'
     );
 
     const consumerId = result.consumer.id;

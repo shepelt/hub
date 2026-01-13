@@ -47,7 +47,8 @@ Meteor.methods({
       const result = await RouterClient.createConsumer(
         this.userId,
         APP_ID,
-        initialCredit
+        initialCredit,
+        'hub'
       );
       // Router returns { consumer: { id, username }, api_key, quota }
       consumerId = result.consumer.id;

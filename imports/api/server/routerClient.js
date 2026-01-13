@@ -41,12 +41,13 @@ export const RouterClient = {
    * @param {string} username - Hub user ID
    * @param {string} customId - Application identifier (e.g., "hpp-hub")
    * @param {number} quota - Initial quota in USD
+   * @param {string} application - Application name for grouping (e.g., "hub")
    * @returns {Promise<{consumer_id: string, api_key: string}>}
    */
-  async createConsumer(username, customId, quota) {
+  async createConsumer(username, customId, quota, application) {
     return routerFetch('/consumers', {
       method: 'POST',
-      body: JSON.stringify({ username, custom_id: customId, quota })
+      body: JSON.stringify({ username, custom_id: customId, quota, application })
     });
   },
 
