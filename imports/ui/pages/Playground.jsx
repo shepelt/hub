@@ -108,6 +108,7 @@ export const Playground = () => {
   }, [currentPlayground?.model]);
 
   const createNewPlayground = () => {
+    setInput(''); // Clear input when starting new chat
     Meteor.call('playground.create', selectedModel, (error, playgroundId) => {
       if (error) {
         console.error('Error creating playground:', error);
@@ -225,7 +226,7 @@ export const Playground = () => {
             <div
               key={pg._id}
               className={`playground-item ${currentId === pg._id ? 'active' : ''}`}
-              onClick={() => setCurrentId(pg._id)}
+              onClick={() => { setInput(''); setCurrentId(pg._id); }}
             >
               <MessageSquare size={16} />
               {renameId === pg._id ? (
