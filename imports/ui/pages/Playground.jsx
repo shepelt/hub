@@ -108,14 +108,8 @@ export const Playground = () => {
   }, [currentPlayground?.model]);
 
   const createNewPlayground = () => {
-    setInput(''); // Clear input when starting new chat
-    Meteor.call('playground.create', selectedModel, (error, playgroundId) => {
-      if (error) {
-        console.error('Error creating playground:', error);
-      } else {
-        setCurrentId(playgroundId);
-      }
-    });
+    setInput('');
+    setCurrentId(null); // Reset to empty state, conversation created on first message
   };
 
   const confirmDelete = (id) => {
