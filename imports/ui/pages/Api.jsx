@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Key, Plus, Trash2, Wallet, ExternalLink } from 'lucide-react';
+import { Key, Plus, Trash2, Wallet, ExternalLink, DollarSign } from 'lucide-react';
 import { CreateKeyModal } from '../components/CreateKeyModal.jsx';
 
 export const Api = () => {
@@ -89,31 +89,11 @@ export const Api = () => {
       </div>
 
       {usage && (
-        <div className="usage-card">
-          <h3>Usage & Quota</h3>
-          <div className="usage-stats">
-            <div className="usage-stat">
-              <span className="usage-label">Quota</span>
-              <span className="usage-value">${usage.quota.toFixed(2)}</span>
-            </div>
-            <div className="usage-stat">
-              <span className="usage-label">Used</span>
-              <span className="usage-value">${usage.used.toFixed(4)}</span>
-            </div>
-            <div className="usage-stat">
-              <span className="usage-label">Remaining</span>
-              <span className="usage-value">${usage.remaining.toFixed(4)}</span>
-            </div>
-            <div className="usage-stat">
-              <span className="usage-label">Requests</span>
-              <span className="usage-value">{usage.requests.toLocaleString()}</span>
-            </div>
-          </div>
-          <div className="usage-bar">
-            <div
-              className="usage-bar-fill"
-              style={{ width: `${Math.min((usage.used / usage.quota) * 100, 100)}%` }}
-            />
+        <div className="credit-card">
+          <div className="credit-card-content">
+            <DollarSign size={18} />
+            <span className="credit-card-label">Remaining Balance</span>
+            <span className="credit-card-value">${usage.remaining.toFixed(2)}</span>
           </div>
         </div>
       )}

@@ -1344,6 +1344,32 @@ body {
   margin-left: auto;
 }
 
+.credit-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.credit-card-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #166534;
+}
+
+.credit-card-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.credit-card-value {
+  font-size: 18px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
 .usage-bar {
   height: 8px;
   background: #e8eaed;
