@@ -12,7 +12,7 @@ export const MainLayout = () => {
     // When entering playground mode, briefly disable hover
     if (isPlayground && !prevIsPlayground.current) {
       setIsTransitioning(true);
-      const timer = setTimeout(() => setIsTransitioning(false), 300);
+      const timer = setTimeout(() => setIsTransitioning(false), 350);
       return () => clearTimeout(timer);
     }
     prevIsPlayground.current = isPlayground;
