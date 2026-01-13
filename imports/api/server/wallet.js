@@ -230,9 +230,11 @@ export async function signCreateKeyTx(userId, deviceShare, onchainData) {
     const tx = contract.methods.createKey(onchainData.keyHash, onchainData.signature);
 
     const gas = await tx.estimateGas({ from: account.address });
+    const gasPrice = await web3.eth.getGasPrice();
     const receipt = await tx.send({
       from: account.address,
-      gas: gas.toString()
+      gas: gas.toString(),
+      gasPrice: gasPrice.toString()
     });
 
     return {
@@ -272,7 +274,7 @@ export async function getWalletBalance(userId) {
  * @returns {object} { funded, txHash?, amount?, balance? }
  */
 async function ensureWalletFunded(address) {
-  const faucetPrivateKey = process.env.KEY_REGISTRY_TEST_PRIVATE_KEY;
+  const faucetPrivateKey = process.env.FAUCET_PRIVATE_KEY;
   if (!faucetPrivateKey) {
     throw new Meteor.Error('no-faucet', 'Faucet wallet not configured');
   }
@@ -305,12 +307,14 @@ async function ensureWalletFunded(address) {
     to: address,
     value: fundAmount
   });
+  const gasPrice = await web3.eth.getGasPrice();
 
   const receipt = await web3.eth.sendTransaction({
     from: faucet.address,
     to: address,
     value: fundAmount,
-    gas
+    gas,
+    gasPrice: gasPrice.toString()
   });
 
   return {
@@ -357,5 +361,39 @@ Meteor.methods({
     check(deviceShare, String);
     check(onchainData, Object);
     return signCreateKeyTx(this.userId, deviceShare, onchainData);
+  },
+
+  async 'admin.getFaucetStats'() {
+    if (!this.userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+
+    // Import isAdmin inline to avoid circular dependency
+    const { isAdmin } = await import('./admin.js');
+    if (!await isAdmin(this.userId)) {
+      throw new Meteor.Error('not-authorized', 'Admin access required');
+    }
+
+    const faucetPrivateKey = process.env.FAUCET_PRIVATE_KEY;
+    if (!faucetPrivateKey) {
+      return { configured: false };
+    }
+
+    const config = getConfig();
+    const web3 = new Web3(config.rpcUrl);
+    const faucet = web3.eth.accounts.privateKeyToAccount(faucetPrivateKey);
+    const balance = await web3.eth.getBalance(faucet.address);
+    const balanceEth = web3.utils.fromWei(balance, 'ether');
+    const minBalanceEth = web3.utils.fromWei(config.minBalanceWei, 'ether');
+    const usersCanFund = Math.floor(parseFloat(balanceEth) / parseFloat(minBalanceEth));
+
+    return {
+      configured: true,
+      address: faucet.address,
+      balance: balanceEth,
+      minBalanceEth,
+      usersCanFund,
+      explorerUrl: config.explorerUrl
+    };
   }
 });

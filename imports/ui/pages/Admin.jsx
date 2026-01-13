@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Navigate } from 'react-router-dom';
-import { Save, DollarSign } from 'lucide-react';
+import { Save, DollarSign, Fuel, ExternalLink, RefreshCw } from 'lucide-react';
 
 export const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(null);
@@ -11,6 +11,8 @@ export const Admin = () => {
     initialCredit: 10
   });
   const [message, setMessage] = useState(null);
+  const [faucet, setFaucet] = useState(null);
+  const [faucetLoading, setFaucetLoading] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -19,6 +21,7 @@ export const Admin = () => {
         setIsAdmin(result);
         if (result) {
           await loadSettings();
+          await loadFaucetStats();
         }
       } catch (error) {
         console.error('Failed to check admin status:', error);
@@ -40,6 +43,18 @@ export const Admin = () => {
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
+    }
+  };
+
+  const loadFaucetStats = async () => {
+    setFaucetLoading(true);
+    try {
+      const result = await Meteor.callAsync('admin.getFaucetStats');
+      setFaucet(result);
+    } catch (error) {
+      console.error('Failed to load faucet stats:', error);
+    } finally {
+      setFaucetLoading(false);
     }
   };
 
@@ -87,6 +102,60 @@ export const Admin = () => {
           {message.text}
         </div>
       )}
+
+      {/* Faucet Monitoring */}
+      <div className="admin-section">
+        <h2>
+          <Fuel size={20} />
+          Gas Faucet
+          <button
+            className="btn-icon-small"
+            onClick={loadFaucetStats}
+            disabled={faucetLoading}
+            title="Refresh"
+          >
+            <RefreshCw size={16} className={faucetLoading ? 'spinning' : ''} />
+          </button>
+        </h2>
+        <p className="section-description">
+          Sponsors gas fees for user on-chain registrations
+        </p>
+
+        {faucet?.configured ? (
+          <div className="faucet-stats">
+            <div className="faucet-stat">
+              <span className="faucet-label">Address</span>
+              <a
+                href={`${faucet.explorerUrl}/address/${faucet.address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="faucet-link"
+              >
+                <code>{faucet.address.slice(0, 10)}...{faucet.address.slice(-8)}</code>
+                <ExternalLink size={12} />
+              </a>
+            </div>
+            <div className="faucet-stat">
+              <span className="faucet-label">Balance</span>
+              <span className="faucet-value">{parseFloat(faucet.balance).toFixed(6)} ETH</span>
+            </div>
+            <div className="faucet-stat">
+              <span className="faucet-label">Per User</span>
+              <span className="faucet-value">{faucet.minBalanceEth} ETH</span>
+            </div>
+            <div className="faucet-stat">
+              <span className="faucet-label">Users Can Fund</span>
+              <span className={`faucet-value ${faucet.usersCanFund < 100 ? 'warning' : ''}`}>
+                {faucet.usersCanFund.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="faucet-not-configured">
+            <p>Faucet not configured. Set FAUCET_PRIVATE_KEY environment variable.</p>
+          </div>
+        )}
+      </div>
 
       <div className="admin-section">
         <h2>
