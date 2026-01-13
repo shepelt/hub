@@ -4,6 +4,8 @@ import '/imports/api/server/publications.js';
 import '/imports/api/server/chat.js';
 import '/imports/api/server/admin.js';
 import '/imports/api/server/apiKeys.js';
+import '/imports/api/server/wallet.js';
+import '/imports/api/server/userInit.js';
 
 Meteor.startup(async () => {
   console.log('HPP Hub server started');

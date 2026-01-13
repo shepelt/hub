@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { ServiceConfiguration } from 'meteor/service-configuration';
 import { useNavigate } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
+import { Onboarding } from '../components/Onboarding.jsx';
 
 export const Login = () => {
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Wait for Google service configuration to be loaded
   const configReady = useTracker(() => {
@@ -20,7 +22,7 @@ export const Login = () => {
         requestOfflineToken: false,
         forceApprovalPrompt: false,
       },
-      (error) => {
+      async (error) => {
         if (error) {
           if (error.errorType === 'Accounts.LoginCancelledError') {
             return;
@@ -28,13 +30,42 @@ export const Login = () => {
           console.error('Login failed:', error);
           alert('Login failed: ' + error.reason);
         } else {
-          console.log('Login successful');
-          navigate('/');
+          // Check if user needs onboarding
+          try {
+            const status = await Meteor.callAsync('user.checkStatus');
+            console.log('User status:', status);
+
+            if (status.needsOnboarding) {
+              // Show onboarding UI
+              setShowOnboarding(true);
+            } else {
+              // Existing user - check deviceShare
+              if (!localStorage.getItem('walletDeviceShare') && status.walletAddress) {
+                console.log('🔄 Recovering device share...');
+                const recovered = await Meteor.callAsync('user.recoverWallet');
+                localStorage.setItem('walletDeviceShare', recovered.deviceShare);
+                console.log('✅ Device share recovered');
+              }
+              navigate('/');
+            }
+          } catch (err) {
+            console.error('Status check failed:', err);
+            navigate('/');
+          }
         }
       }
     );
   };
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    navigate('/');
+  };
+
+  // Show onboarding screen
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div className="login-page">

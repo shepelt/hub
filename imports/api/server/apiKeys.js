@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { ApiKeys, SystemSettings } from '../collections.js';
+import { ApiKeys, SystemSettings, WalletShares } from '../collections.js';
 import { RouterClient } from './routerClient.js';
 
 const DEFAULT_INITIAL_CREDIT = 10;
@@ -44,13 +44,19 @@ Meteor.methods({
     if (!consumerId) {
       // First key - create consumer with initial credit
       const initialCredit = await getInitialCredit();
+
+      // Get user's wallet address if they have one
+      const wallet = await WalletShares.findOneAsync({ userId: this.userId });
+      const userAddress = wallet?.address || null;
+
       const result = await RouterClient.createConsumer(
         this.userId,
         APP_ID,
         initialCredit,
-        'hub'
+        'hub',
+        userAddress
       );
-      // Router returns { consumer: { id, username }, api_key, quota }
+      // Router returns { consumer: { id, username }, api_key, quota, onchain? }
       consumerId = result.consumer.id;
       fullKey = result.api_key;
 
@@ -68,12 +74,17 @@ Meteor.methods({
       return {
         keyId: 'initial',
         key: fullKey,
-        name: name.trim()
+        name: name.trim(),
+        onchain: result.onchain || null  // For on-chain registration
       };
     }
 
     // Existing consumer - add new key
-    const result = await RouterClient.createKey(consumerId);
+    // Get user's wallet address if they have one
+    const wallet = await WalletShares.findOneAsync({ userId: this.userId });
+    const userAddress = wallet?.address || null;
+
+    const result = await RouterClient.createKey(consumerId, 'hpph', userAddress);
     fullKey = result.key;
     const keySuffix = fullKey.slice(-4);
 
@@ -89,7 +100,8 @@ Meteor.methods({
     return {
       keyId: result.id,
       key: fullKey,
-      name: name.trim()
+      name: name.trim(),
+      onchain: result.onchain || null  // For on-chain registration
     };
   },
 

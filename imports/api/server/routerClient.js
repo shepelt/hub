@@ -42,12 +42,17 @@ export const RouterClient = {
    * @param {string} customId - Application identifier (e.g., "hpp-hub")
    * @param {number} quota - Initial quota in USD
    * @param {string} application - Application name for grouping (e.g., "hub")
-   * @returns {Promise<{consumer_id: string, api_key: string}>}
+   * @param {string} userAddress - Optional wallet address for on-chain registration
+   * @returns {Promise<{consumer: object, api_key: string, onchain?: object}>}
    */
-  async createConsumer(username, customId, quota, application) {
+  async createConsumer(username, customId, quota, application, userAddress = null) {
+    const body = { username, custom_id: customId, quota, application };
+    if (userAddress) {
+      body.userAddress = userAddress;
+    }
     return routerFetch('/consumers', {
       method: 'POST',
-      body: JSON.stringify({ username, custom_id: customId, quota, application })
+      body: JSON.stringify(body)
     });
   },
 
@@ -105,12 +110,17 @@ export const RouterClient = {
    * Add a new API key to an existing consumer
    * @param {string} consumerId - Kong consumer UUID
    * @param {string} prefix - Optional key prefix (e.g., "hpph")
-   * @returns {Promise<{id: string, key: string, consumer_id: string}>}
+   * @param {string} userAddress - Optional wallet address for on-chain registration
+   * @returns {Promise<{id: string, key: string, consumer_id: string, onchain?: object}>}
    */
-  async createKey(consumerId, prefix = 'hpph') {
+  async createKey(consumerId, prefix = 'hpph', userAddress = null) {
+    const body = { prefix };
+    if (userAddress) {
+      body.userAddress = userAddress;
+    }
     return routerFetch(`/consumers/${consumerId}/keys`, {
       method: 'POST',
-      body: JSON.stringify({ prefix })
+      body: JSON.stringify(body)
     });
   },
 

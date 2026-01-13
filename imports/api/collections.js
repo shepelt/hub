@@ -58,3 +58,24 @@ export const ApiKeys = new Mongo.Collection('apiKeys');
  * }
  */
 export const DeletedAccounts = new Mongo.Collection('deletedAccounts');
+
+/**
+ * WalletShares collection - Shamir secret shares for MPC wallets
+ *
+ * Schema:
+ * {
+ *   _id: string,
+ *   userId: string,           // Hub user who owns this wallet
+ *   address: string,          // Ethereum address (public)
+ *   serverShare: string,      // Hex-encoded server share
+ *   recoveryShare: string,    // Hex-encoded recovery share (TODO: move to Router)
+ *   createdAt: Date
+ * }
+ *
+ * Security notes:
+ * - Device share stored in client localStorage (not here)
+ * - 2-of-3 Shamir: need any 2 shares to reconstruct private key
+ * - TODO: Move recoveryShare to Router for separation of trust
+ * - TODO: Encrypt recoveryShare with user PIN
+ */
+export const WalletShares = new Mongo.Collection('walletShares');
