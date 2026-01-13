@@ -11,12 +11,21 @@ import { getModels, getDefaultModel } from '../../api/models.js';
 
 // Configure marked with KaTeX for math rendering
 marked.use(markedKatex({
-  throwOnError: false
+  throwOnError: false,
+  nonStandard: true
 }));
 marked.setOptions({
   breaks: true,
   gfm: true,
 });
+
+// Convert LaTeX delimiters: \[...\] -> $$...$$ and \(...\) -> $...$
+const normalizeLatex = (content) => {
+  if (!content) return '';
+  return content
+    .replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$')  // \[...\] -> $$...$$
+    .replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');      // \(...\) -> $...$
+};
 
 export const Playground = () => {
   const { chatId } = useParams();
@@ -70,9 +79,10 @@ export const Playground = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Autoscroll disabled - users prefer manual scrolling
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   // Sync URL with currentId
   useEffect(() => {
@@ -314,7 +324,7 @@ export const Playground = () => {
                   </div>
                   <div className="message-content">
                     {msg.role === 'assistant' ? (
-                      <div dangerouslySetInnerHTML={{ __html: marked.parse(msg.content || '') }} />
+                      <div dangerouslySetInnerHTML={{ __html: marked.parse(normalizeLatex(msg.content)) }} />
                     ) : (
                       msg.content
                     )}
