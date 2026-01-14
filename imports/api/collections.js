@@ -39,10 +39,11 @@ export const SystemSettings = new Mongo.Collection('systemSettings');
  *   keyId: string,            // Kong key-auth credential ID
  *   name: string,             // User-friendly label ("Production")
  *   keySuffix: string,        // Last 4 chars for display (e.g., "...x7f2")
+ *   encryptedKey: string,     // AES-256-GCM encrypted full key (retrievable)
  *   createdAt: Date
  * }
  *
- * Note: Full key is only returned once on creation, never stored in Hub.
+ * Note: Full key is encrypted at rest and can be retrieved by the owner.
  * Quota/usage is fetched from Router on demand.
  */
 export const ApiKeys = new Mongo.Collection('apiKeys');

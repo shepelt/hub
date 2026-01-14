@@ -1528,20 +1528,97 @@ body {
   font-weight: 500;
 }
 
-.api-keys-table .key-suffix code {
-  background: #f1f3f4;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: 'SF Mono', Monaco, monospace;
+.api-keys-table .key-value-cell {
+  min-width: 180px;
+}
+
+.key-value-display {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  max-width: 100%;
+}
+
+.key-value-display code {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
   font-size: 13px;
+  color: #5f6368;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.key-value-display.revealed {
+  background: #e8f0fe;
+  border-color: #c2d7f7;
+}
+
+.key-value-display.revealed code {
+  color: #1a73e8;
+  font-weight: 500;
 }
 
 .api-keys-table .key-date {
   color: #5f6368;
+  white-space: nowrap;
 }
 
 .api-keys-table .key-actions {
   text-align: right;
+  white-space: nowrap;
+}
+
+/* Key action buttons */
+.key-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #5f6368;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 4px;
+}
+
+.key-action-btn:first-child {
+  margin-left: 0;
+}
+
+.key-action-btn:hover {
+  background: #f1f3f4;
+  color: #202124;
+}
+
+.key-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.key-action-btn.active {
+  background: #e8f0fe;
+  color: #1a73e8;
+}
+
+.key-action-btn.active:hover {
+  background: #d2e3fc;
+}
+
+.key-action-btn.copied {
+  background: #e6f4ea;
+  color: #1e8e3e;
+}
+
+.key-action-btn.danger:hover {
+  background: #fce8e6;
+  color: #c5221f;
 }
 
 /* Settings Page */

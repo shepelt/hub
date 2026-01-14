@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { ApiKeys, SystemSettings, WalletShares } from '../collections.js';
 import { RouterClient } from './routerClient.js';
+import { encrypt, decrypt } from './utils.js';
 
 const DEFAULT_INITIAL_CREDIT = 10;
 const APP_ID = 'hpp-hub';
@@ -60,7 +61,7 @@ Meteor.methods({
       consumerId = result.consumer.id;
       fullKey = result.api_key;
 
-      // Store the first key
+      // Store the first key (with encrypted full key for retrieval)
       const keySuffix = fullKey.slice(-4);
       await ApiKeys.insertAsync({
         userId: this.userId,
@@ -68,6 +69,7 @@ Meteor.methods({
         keyId: 'initial', // Router doesn't return key_id for first key
         name: name.trim(),
         keySuffix: `...${keySuffix}`,
+        encryptedKey: encrypt(fullKey),
         createdAt: new Date()
       });
 
@@ -94,6 +96,7 @@ Meteor.methods({
       keyId: result.id,
       name: name.trim(),
       keySuffix: `...${keySuffix}`,
+      encryptedKey: encrypt(fullKey),
       createdAt: new Date()
     });
 
@@ -210,5 +213,31 @@ Meteor.methods({
     }
 
     return { success: true };
+  },
+
+  /**
+   * Retrieve the full API key (decrypted)
+   * @param {string} keyId - Hub ApiKey document _id
+   * @returns {Promise<{key: string}>}
+   */
+  'apiKeys.getKey': async function(keyId) {
+    if (!this.userId) {
+      throw new Meteor.Error('not-authenticated', 'Must be logged in');
+    }
+
+    const apiKey = await ApiKeys.findOneAsync({
+      _id: keyId,
+      userId: this.userId
+    });
+
+    if (!apiKey) {
+      throw new Meteor.Error('not-found', 'API key not found');
+    }
+
+    if (!apiKey.encryptedKey) {
+      throw new Meteor.Error('not-available', 'This key was created before key retrieval was enabled. Please create a new key.');
+    }
+
+    return { key: decrypt(apiKey.encryptedKey) };
   }
 });

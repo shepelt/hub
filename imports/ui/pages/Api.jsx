@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { Key, Plus, Trash2, Wallet, ExternalLink, DollarSign } from 'lucide-react';
+import { Key, Plus, Trash2, Wallet, ExternalLink, DollarSign, Copy, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 import { CreateKeyModal } from '../components/CreateKeyModal.jsx';
 
 export const Api = () => {
@@ -13,6 +13,11 @@ export const Api = () => {
   // Wallet state
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletLoading, setWalletLoading] = useState(false);
+
+  // Revealed keys state: { keyId: fullKeyValue }
+  const [revealedKeys, setRevealedKeys] = useState({});
+  const [revealingKey, setRevealingKey] = useState(null);
+  const [copiedKey, setCopiedKey] = useState(null);
 
   const loadKeys = async () => {
     try {
@@ -54,11 +59,63 @@ export const Api = () => {
     try {
       await Meteor.callAsync('apiKeys.delete', keyId);
       setDeleteConfirmId(null);
+      setRevealedKeys((prev) => {
+        const next = { ...prev };
+        delete next[keyId];
+        return next;
+      });
       await loadKeys();
       await loadUsage();
     } catch (error) {
       console.error('Failed to delete API key:', error);
       alert(error.reason || 'Failed to delete API key');
+    }
+  };
+
+  const handleRevealKey = async (keyId) => {
+    if (revealedKeys[keyId]) {
+      // Hide the key
+      setRevealedKeys((prev) => {
+        const next = { ...prev };
+        delete next[keyId];
+        return next;
+      });
+      return;
+    }
+
+    setRevealingKey(keyId);
+    try {
+      const result = await Meteor.callAsync('apiKeys.getKey', keyId);
+      setRevealedKeys((prev) => ({ ...prev, [keyId]: result.key }));
+    } catch (error) {
+      console.error('Failed to reveal API key:', error);
+      alert(error.reason || 'Failed to reveal API key');
+    } finally {
+      setRevealingKey(null);
+    }
+  };
+
+  const handleCopyKey = async (keyId) => {
+    let keyToCopy = revealedKeys[keyId];
+
+    if (!keyToCopy) {
+      // Fetch the key first
+      try {
+        const result = await Meteor.callAsync('apiKeys.getKey', keyId);
+        keyToCopy = result.key;
+      } catch (error) {
+        console.error('Failed to get API key:', error);
+        alert(error.reason || 'Failed to copy API key');
+        return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(keyToCopy);
+      setCopiedKey(keyId);
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
     }
   };
 
@@ -162,26 +219,55 @@ export const Api = () => {
               </tr>
             </thead>
             <tbody>
-              {keys.map((key) => (
-                <tr key={key._id}>
-                  <td className="key-name">{key.name}</td>
-                  <td className="key-suffix">
-                    <code>{key.keySuffix}</code>
-                  </td>
-                  <td className="key-date">
-                    {new Date(key.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="key-actions">
-                    <button
-                      className="btn btn-icon btn-danger"
-                      onClick={() => setDeleteConfirmId(key._id)}
-                      title="Delete key"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {keys.map((key) => {
+                const isRevealed = !!revealedKeys[key._id];
+                const isRevealing = revealingKey === key._id;
+                const isCopied = copiedKey === key._id;
+
+                return (
+                  <tr key={key._id}>
+                    <td className="key-name">{key.name}</td>
+                    <td className="key-value-cell">
+                      <div className={`key-value-display ${isRevealed ? 'revealed' : ''}`}>
+                        <code>{isRevealed ? revealedKeys[key._id] : key.keySuffix}</code>
+                      </div>
+                    </td>
+                    <td className="key-date">
+                      {new Date(key.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="key-actions">
+                      <button
+                        className={`key-action-btn ${isRevealed ? 'active' : ''}`}
+                        onClick={() => handleRevealKey(key._id)}
+                        title={isRevealed ? 'Hide key' : 'Reveal key'}
+                        disabled={isRevealing}
+                      >
+                        {isRevealing ? (
+                          <Loader2 size={16} className="spinning" />
+                        ) : isRevealed ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </button>
+                      <button
+                        className={`key-action-btn ${isCopied ? 'copied' : ''}`}
+                        onClick={() => handleCopyKey(key._id)}
+                        title={isCopied ? 'Copied!' : 'Copy key'}
+                      >
+                        {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                      </button>
+                      <button
+                        className="key-action-btn danger"
+                        onClick={() => setDeleteConfirmId(key._id)}
+                        title="Delete key"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
